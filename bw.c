@@ -59,6 +59,7 @@ for(int k = 1;k < suff_index; k++){
 count_array[text[length]] = count_array[text[length]] + 1;
 tmp_sort[suff_index] = suff_index; 
 
+
 for (int i = 1; i < 257; i++){
     count_array[i] = count_array[i] + count_array[i -1];
     
@@ -85,6 +86,8 @@ struct stat txt_stats;
 fd = Open(argv[1], O_RDONLY, S_IRUSR);
 Stat(argv[1], &txt_stats);
 int full_size = txt_stats.st_size;
+/* there is an extra 2 bytes and I am not yet sure what their function
+is but it is not text */
 full_size -=2;
 
 char *mybuff = (void *) malloc(full_size);
@@ -99,8 +102,13 @@ rio_readnb(&rio, mybuff, 8092);
 
 
 for (int i = 1; i <  full_size + 2; i++){
-    csort(mybuff, sorted_buff, full_size, i );
+    suffix_radix_sort(mybuff, sorted_buff, full_size, i );
 }
+
+for (int i = 1; i <  full_size + 2; i++){
+    printf("%c", mybuff[(sorted_buff[i] - 2 % full_size)]);
+}
+
 
 
 }
