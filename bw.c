@@ -71,6 +71,9 @@ for(int k = suff_index;k >=0; k--){
     count_array[text[curr_suff]] = count_array[text[curr_suff]] -1;  
 }
 
+
+
+
 }
 
 int main(int argc, char *argv[]) {
@@ -118,8 +121,7 @@ printf("Transformed text: ");
 for (int i = 0; i <  real_size; i++){
     x= (sorted_buff[i] - 1);
 
-    printf("%c", mybuff[(x < 0) ? (x % real_size + real_size) : (x % real_size)
-]);
+    printf("%c", mybuff[(x < 0) ? (x % real_size + real_size) : (x % real_size)]);
 }
 
 }
