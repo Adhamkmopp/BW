@@ -50,10 +50,11 @@ or 6 - (3 - 2) = 5.
 the formula applies to the the first suffix's (BANANA) character column as well, 
 which should be the 2nd 'A' from the right or: 6 - (3 - 1) = 4.*/
 
-for(int k = 1;k < suff_index; k++){
+for(int k = 0;k < suff_index; k++){
     curr_suff = length - (suff_index - tmp_sort[k]);
-    count_array[text[curr_suff]] = count_array[text[curr_suff]] + 1;
     
+    count_array[text[curr_suff]] = count_array[text[curr_suff]] + 1;
+
 }
 
 count_array[text[length]] = count_array[text[length]] + 1;
@@ -61,16 +62,13 @@ tmp_sort[suff_index] = suff_index;
 
 
 for (int i = 1; i < 257; i++){
-    count_array[i] = count_array[i] + count_array[i -1];
-    
+    count_array[i] = count_array[i] + count_array[i -1]; 
 }
 
-
-for(int k = suff_index;k >=1; k--){
+for(int k = suff_index;k >=0; k--){
     curr_suff = length - (suff_index - tmp_sort[k]);
-    sorted[count_array[text[curr_suff]]] = tmp_sort[k];
-    count_array[text[curr_suff]] = count_array[text[curr_suff]] -1;
-    
+    sorted[count_array[text[curr_suff]] - 1] = tmp_sort[k];
+    count_array[text[curr_suff]] = count_array[text[curr_suff]] -1;  
 }
 
 }
@@ -101,14 +99,27 @@ Rio_readinitb(&rio, fd);
 rio_readnb(&rio, mybuff, 8092);
 
 
-for (int i = 1; i <  full_size + 2; i++){
-    suffix_radix_sort(mybuff, sorted_buff, full_size, i );
+for (int i = 0; i <  full_size + 1; i++){
+    suffix_radix_sort(mybuff, sorted_buff, full_size , i );
 }
 
-for (int i = 1; i <  full_size + 2; i++){
-    printf("%c", mybuff[(sorted_buff[i] - 2 % full_size)]);
+printf("Suffix sort by index: ");
+for (int i = 0; i <  full_size + 1; i++){
+   printf("%d ", sorted_buff[i]);
 }
 
+printf("\n");
 
+int real_size = full_size +1;
+int x=0;
+
+printf("Transformed text: ");
+
+for (int i = 0; i <  real_size; i++){
+    x= (sorted_buff[i] - 1);
+
+    printf("%c", mybuff[(x < 0) ? (x % real_size + real_size) : (x % real_size)
+]);
+}
 
 }
