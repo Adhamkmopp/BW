@@ -8,7 +8,50 @@
 #include "csapp.h"
 
 
-/* The purpose of this program is to sort suffixes based on radix sort, from least,
+void msd_radix_sort(char *text, int *sorted, int lower, int upper, int char_pos, int length)
+{
+
+int range = upper - lower;
+if (range <=0)
+    return;
+int items = range + 1;
+int *count_array = (void *) calloc(256, sizeof(int));
+int *tmp_array = (void *) calloc(items, sizeof(int));
+
+for (int j=lower; j <= upper; j++){
+    if (sorted[j] + char_pos == length){
+        sorted[lower] = sorted[j];
+        lower++;
+    }
+   count_array[text[sorted[j] + char_pos]] = count_array[text[sorted[j] + char_pos]] + 1;
+}
+
+for (int i = 1; i < 257; i++){
+    count_array[i] = count_array[i] + count_array[i -1]; 
+}
+
+for(int j = upper; j >=lower; j--){
+    tmp_array[count_array[text[sorted[j] + char_pos]]] = sorted[j];
+    count_array[text[j]] =  count_array[text[tmp_array[j]]] -1;
+}
+
+int i = 0;
+for (int j = lower;  j <=upper; j++){
+    sorted[j] = tmp_array[i];
+    printf("%c ", text[sorted[j]]);
+    i++;
+}
+
+free(count_array);
+free(tmp_array);
+
+
+}
+
+
+
+
+/* suffix_radix_sort performs radix sort on a set of suffixes, from least,
 to most signficiant digit, with the addition of one new suffix at a time. The 
 suffix_radix_sort  function takes a pointer to the text, an array to place sorted 
 suffix indices,  a void pointer to a space of 256 integer entries for keeping counts,
@@ -20,26 +63,6 @@ character of a  newly introduced suffix (which is always the last character of t
 text itself).
  */
 
-void msd_radix_sort(char *text, int *sorted, void *counts, int lower, int upper)
-{
-
-int *count_array = counts;
-int range = upper - lower;
-
-for (int j=lower; j < upper; j++){ //doubt
-   count_array[text[j]] = count_array[text[j]] + 1;
-}
-
-for (int i = 1; i < 257; i++){
-    count_array[i] = count_array[i] + count_array[i -1]; 
-}
-
-for (int j = upper;  j >= lower; j--){
-    sorted[count_array[text[j]]] = j;
-    count_array[text[j]] =  count_array[text[j]] -1;
-}
-
-}
 void suffix_radix_sort(char *text, int *sorted, void *counts, int length, int suff_index)
 {
 
@@ -79,7 +102,7 @@ count_array[text[length]] = count_array[text[length]] + 1;
 tmp_sort[suff_index] = suff_index; 
 
 
-for (int i = 1; i < 257; i++){
+for (int i = 1; i < 256; i++){
     count_array[i] = count_array[i] + count_array[i -1]; 
 }
 
@@ -103,15 +126,15 @@ struct stat txt_stats;
 fd = Open(argv[1], O_RDONLY, S_IRUSR);
 Stat(argv[1], &txt_stats);
 int full_size = txt_stats.st_size;
-full_size -=2;
+int text_length = full_size - 2;
 
 
 char *mybuff = (void *) malloc(full_size);
-void *counts = (void *) malloc(32*256);
+void *counts = (void *) malloc(sizeof(int)*256);
 
-int sorted_buff[full_size];
+int sorted_buff[text_length];
 
-for(int i = 0; i < full_size; i++){
+for(int i = 0; i < text_length; i++){
     sorted_buff[i] = 0;
 }
 
@@ -122,19 +145,20 @@ rio_readnb(&rio, mybuff, 8092);
 /* since counts are continuously used and reused with each loop,
 memset is used to 'wipe out' the array faster than iterating over
 every element */
-for (int i = 0; i <  full_size + 1; i++){
-    counts =  memset(counts, 0, 32*256);
-    suffix_radix_sort(mybuff, sorted_buff, counts, full_size , i );
+for (int i = 0; i <  text_length + 1; i++){
+    counts =  memset(counts, 0, sizeof(int) *256);
+    suffix_radix_sort(mybuff, sorted_buff, counts, text_length , i );
 }
 
+
 printf("Suffix sort by index: ");
-for (int i = 0; i <  full_size + 1; i++){
+for (int i = 0; i <  text_length + 1; i++){
    printf("%d ", sorted_buff[i]);
 }
 
 printf("\n");
 
-int real_size = full_size +1;
+int real_size = text_length +1;
 int x=0;
 
 printf("Transformed text: ");
@@ -144,5 +168,8 @@ for (int i = 0; i <  real_size; i++){
 
     printf("%c", mybuff[(x < 0) ? (x % real_size + real_size) : (x % real_size)]);
 }
+
+free(counts);
+free(mybuff);
 
 }
