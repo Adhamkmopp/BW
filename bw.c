@@ -8,38 +8,38 @@
 #include "csapp.h"
 
 
-/* the function sorts suffixes based on radix sort. it takes a pointer to
-the text, an array to place sorted suffix indices, the length of the text 
-and a suff_index variable for the current round of sorting. at every round 
-of sorting, a new suffix is introduced and given the key value of suff_index, 
-and sorting is performed on a column of characters of the old suffixes shifted
-by one position to the left, in addition to the right-most character of a 
-newly introduced suffix (which is always the last character of the text itself).
+/* The purpose of this program is to sort suffixes based on radix sort, from least,
+to most signficiant digit, with the addition of one new suffix at a time. The 
+suffix_radix_sort  function takes a pointer to the text, an array to place sorted 
+suffix indices,  a void pointer to a space of 256 integer entries for keeping counts,
+the length of the text and a suff_index variable to keep a record of the current 
+round of sorting. At every round  of sorting, a new suffix is introduced and is 
+given the key value  of suff_index. Sorting is performed on a column of characters 
+of the old suffixes shifted by one position to the left, in addition to the right-most 
+character of a  newly introduced suffix (which is always the last character of the 
+text itself).
  */
 
-void suffix_radix_sort(char *text, int *sorted, int length, int suff_index)
+void suffix_radix_sort(char *text, int *sorted, void *counts, int length, int suff_index)
 {
 
-int count_array[257];
+int *count_array = counts;
 int curr_suff;
 
-/* holds initial values of the previous sort order. acts as a temporary sorting 
-array to  avoid overwriting already sorted values, as well as a placeholder for
-key-values of current suffixes */
+/* tmp_sort holds initial values of the previous sort order. It serves a double
+function as a  temporary sorting  array to  avoid overwriting already sorted 
+values, as well as a placeholder for key-values of current suffixes */
 int tmp_sort[suff_index + 1]; 
 for (int i =0; i <= suff_index; i++){
     tmp_sort[i] = sorted[i];
 }
 
-for (int i =0; i < 257; i++){
-    count_array[i] = 0;
-}
 
-/* curr_suff holds the correct position of the  column character for the suffix 
-under consideration. suffixes are not directly represented, but are calculated 
-from the length of the text and their key-value. for example, the second suffix 
+/* curr_suff holds the correct position of the column character for the suffix 
+under consideration. Suffixes are not directly represented, but are calculated 
+from the length of the text and their key-value. For example, the second suffix 
 in BANANA (which is ANANA) is given the key-value of 2 during the second round 
-of sorting (from suff_index). during the third round, the  correct character 
+of sorting (from suff_index). During the third round, the correct character 
 column should be at the first 'N' from the right, which is exactly at the 
 character position given by the formula: 
 
@@ -87,11 +87,12 @@ struct stat txt_stats;
 fd = Open(argv[1], O_RDONLY, S_IRUSR);
 Stat(argv[1], &txt_stats);
 int full_size = txt_stats.st_size;
-/* there is an extra 2 bytes and I am not yet sure what their function
-is but it is not text */
 full_size -=2;
 
+
 char *mybuff = (void *) malloc(full_size);
+void *counts = (void *) malloc(32*256);
+
 int sorted_buff[full_size];
 
 for(int i = 0; i < full_size; i++){
@@ -102,8 +103,12 @@ Rio_readinitb(&rio, fd);
 rio_readnb(&rio, mybuff, 8092);
 
 
+/* since counts are continuously used and reused with each loop,
+memset is used to 'wipe out' the array faster than iterating over
+every element */
 for (int i = 0; i <  full_size + 1; i++){
-    suffix_radix_sort(mybuff, sorted_buff, full_size , i );
+    counts =  memset(counts, 0, 32*256);
+    suffix_radix_sort(mybuff, sorted_buff, counts, full_size , i );
 }
 
 printf("Suffix sort by index: ");

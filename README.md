@@ -1,5 +1,5 @@
 # BW
-This is an attempt -in C- at the Burrows Wheeler compression algorithm that utilizes radix sort as its suffix sorting algorithm and pointers to reference suffixes excluively.
+This is an attempt -in C- at the Burrows Wheeler compression algorithm that utilizes radix sort as its suffix sorting algorithm. The main idea is to refrain from using any sorting libraries or the string library itself, and to make exclusive use of pointers and array indexing to implement a new sorting algorithm.
 
 ## Radix sort:
 
