@@ -20,6 +20,26 @@ character of a  newly introduced suffix (which is always the last character of t
 text itself).
  */
 
+void msd_radix_sort(char *text, int *sorted, void *counts, int lower, int upper)
+{
+
+int *count_array = counts;
+int range = upper - lower;
+
+for (int j=lower; j < upper; j++){ //doubt
+   count_array[text[j]] = count_array[text[j]] + 1;
+}
+
+for (int i = 1; i < 257; i++){
+    count_array[i] = count_array[i] + count_array[i -1]; 
+}
+
+for (int j = upper;  j >= lower; j--){
+    sorted[count_array[text[j]]] = j;
+    count_array[text[j]] =  count_array[text[j]] -1;
+}
+
+}
 void suffix_radix_sort(char *text, int *sorted, void *counts, int length, int suff_index)
 {
 
@@ -51,10 +71,8 @@ the formula applies to the the first suffix's (BANANA) character column as well,
 which should be the 2nd 'A' from the right or: 6 - (3 - 1) = 4.*/
 
 for(int k = 0;k < suff_index; k++){
-    curr_suff = length - (suff_index - tmp_sort[k]);
-    
+    curr_suff = length - (suff_index - tmp_sort[k]);   
     count_array[text[curr_suff]] = count_array[text[curr_suff]] + 1;
-
 }
 
 count_array[text[length]] = count_array[text[length]] + 1;
@@ -71,10 +89,8 @@ for(int k = suff_index;k >=0; k--){
     count_array[text[curr_suff]] = count_array[text[curr_suff]] -1;  
 }
 
-
-
-
 }
+
 
 int main(int argc, char *argv[]) {
 
