@@ -34,13 +34,15 @@ for (int j=lower; j <= upper; j++){
 }
 
 for (int i = 1; i < 256 ; i++){
+    upper_array[i] = count_array[i];
+}
+
+
+for (int i = 1; i < 256 ; i++){
     count_array[i] = count_array[i] + count_array[i -1]; 
 }
 
-for (int i = 1; i < 256 ; i++){
-    upper_array[i] = count_array[i]; 
-    
-}
+
 
 for(int j = upper; j >=lower; j--){
     tmp_array[count_array[text[sorted[j] + char_pos]] - 1] = sorted[j];
@@ -51,27 +53,20 @@ for(int j = upper; j >=lower; j--){
 int i = lower;
 for (int j = 0;  j < items; j++){
     sorted[i] = tmp_array[j];
-    printf("%c", text[sorted[i]]);
     i++;
 }
 
-int j = lower; // 0
-/*while (j < upper)
+int j = lower;
+while (j <= upper)
 {
-    new_upper = upper_array[text[sorted[j + char_pos]]]; // 2 then 3
-    //msd_radix_sort(text, sorted, j , new_upper , char_pos + 1, length);
-    j = new_upper + 1;
-     
+    new_upper = upper_array[text[sorted[j] + char_pos]] ;
+    msd_radix_sort(text, sorted, j , new_upper , char_pos + 1, length);
+    j = j + new_upper;
+ 
 }
-*/
-free(count_array);
-free(tmp_array);
+
 free(upper_array);
-
-
 }
-
-
 
 
 /* suffix_radix_sort performs radix sort on a set of suffixes, from least,
@@ -174,17 +169,16 @@ for (int i = 0; i <  text_end + 1; i++){
 }
 
 
-printf("Suffix sort by index: ");
+printf("\nSuffix sort by index (radix sort): ");
 for (int i = 0; i <  text_end + 1; i++){
    printf("%d ", sorted_buff[i]);
 }
 
-printf("\n");
 
 int real_size = text_end +1;
 int x=0;
 
-printf("Transformed text: ");
+printf("\nTransformed text (radix sort): ");
 
 for (int i = 0; i <  real_size; i++){
     x= (sorted_buff[i] - 1);
@@ -192,14 +186,30 @@ for (int i = 0; i <  real_size; i++){
     printf("%c", mybuff[(x < 0) ? (x % real_size + real_size) : (x % real_size)]);
 }
 
-free(counts);
-free(mybuff);
 
 
-/*for(int i = 0; i <= text_end; i++){
+counts =  memset(counts, 0, sizeof(int) *256);
+for(int i = 0; i <= text_end; i++){
     sorted_buff[i] = i;
 }
 
-msd_radix_sort(mybuff, sorted_buff, 2, text_end, 0,text_end + 1);
-*/
+msd_radix_sort(mybuff, sorted_buff, 0, text_end, 0,text_end + 1);
+
+
+printf("\nSuffix sort by index (MSD sort): ");
+for (int i = 0; i <  text_end + 1; i++){
+   printf("%d ", sorted_buff[i]);
+}
+
+
+printf("\nTransformed text (MSD sort): ");
+for (int i = 0; i <  real_size; i++){
+    x= (sorted_buff[i] - 1);
+    printf("%c", mybuff[(x < 0) ? (x % real_size + real_size) : (x % real_size)]);
+}
+
+
+free(mybuff);
+free(counts);
+
 }
