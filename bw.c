@@ -12,38 +12,61 @@ void msd_radix_sort(char *text, int *sorted, int lower, int upper, int char_pos,
 {
 
 int range = upper - lower;
+
 if (range <=0)
     return;
+
 int items = range + 1;
 int *count_array = (void *) calloc(256, sizeof(int));
+int *upper_array = (void *) calloc(256, sizeof(int));
 int *tmp_array = (void *) calloc(items, sizeof(int));
+int new_upper = 0;
 
 for (int j=lower; j <= upper; j++){
+    
     if (sorted[j] + char_pos == length){
         sorted[lower] = sorted[j];
         lower++;
+        continue;
     }
+    
    count_array[text[sorted[j] + char_pos]] = count_array[text[sorted[j] + char_pos]] + 1;
 }
 
-for (int i = 1; i < 257; i++){
+for (int i = 1; i < 256 ; i++){
     count_array[i] = count_array[i] + count_array[i -1]; 
 }
 
-for(int j = upper; j >=lower; j--){
-    tmp_array[count_array[text[sorted[j] + char_pos]]] = sorted[j];
-    count_array[text[j]] =  count_array[text[tmp_array[j]]] -1;
+for (int i = 1; i < 256 ; i++){
+    upper_array[i] = count_array[i]; 
+    
 }
 
-int i = 0;
-for (int j = lower;  j <=upper; j++){
-    sorted[j] = tmp_array[i];
-    printf("%c ", text[sorted[j]]);
+for(int j = upper; j >=lower; j--){
+    tmp_array[count_array[text[sorted[j] + char_pos]] - 1] = sorted[j];
+    count_array[text[sorted[j] + char_pos]] = count_array[text[sorted[j] + char_pos]] - 1;
+    
+} 
+
+int i = lower;
+for (int j = 0;  j < items; j++){
+    sorted[i] = tmp_array[j];
+    printf("%c", text[sorted[i]]);
     i++;
 }
 
+int j = lower; // 0
+/*while (j < upper)
+{
+    new_upper = upper_array[text[sorted[j + char_pos]]]; // 2 then 3
+    //msd_radix_sort(text, sorted, j , new_upper , char_pos + 1, length);
+    j = new_upper + 1;
+     
+}
+*/
 free(count_array);
 free(tmp_array);
+free(upper_array);
 
 
 }
@@ -126,15 +149,15 @@ struct stat txt_stats;
 fd = Open(argv[1], O_RDONLY, S_IRUSR);
 Stat(argv[1], &txt_stats);
 int full_size = txt_stats.st_size;
-int text_length = full_size - 2;
+int text_end = full_size - 2;
 
 
 char *mybuff = (void *) malloc(full_size);
 void *counts = (void *) malloc(sizeof(int)*256);
 
-int sorted_buff[text_length];
+int sorted_buff[text_end + 1];
 
-for(int i = 0; i < text_length; i++){
+for(int i = 0; i <= text_end; i++){
     sorted_buff[i] = 0;
 }
 
@@ -145,20 +168,20 @@ rio_readnb(&rio, mybuff, 8092);
 /* since counts are continuously used and reused with each loop,
 memset is used to 'wipe out' the array faster than iterating over
 every element */
-for (int i = 0; i <  text_length + 1; i++){
+for (int i = 0; i <  text_end + 1; i++){
     counts =  memset(counts, 0, sizeof(int) *256);
-    suffix_radix_sort(mybuff, sorted_buff, counts, text_length , i );
+    suffix_radix_sort(mybuff, sorted_buff, counts, text_end , i );
 }
 
 
 printf("Suffix sort by index: ");
-for (int i = 0; i <  text_length + 1; i++){
+for (int i = 0; i <  text_end + 1; i++){
    printf("%d ", sorted_buff[i]);
 }
 
 printf("\n");
 
-int real_size = text_length +1;
+int real_size = text_end +1;
 int x=0;
 
 printf("Transformed text: ");
@@ -172,4 +195,11 @@ for (int i = 0; i <  real_size; i++){
 free(counts);
 free(mybuff);
 
+
+/*for(int i = 0; i <= text_end; i++){
+    sorted_buff[i] = i;
+}
+
+msd_radix_sort(mybuff, sorted_buff, 2, text_end, 0,text_end + 1);
+*/
 }
