@@ -21,31 +21,37 @@ int *count_array = (void *) calloc(256, sizeof(int));
 int *upper_array = (void *) calloc(256, sizeof(int));
 int *tmp_array = (void *) calloc(items, sizeof(int));
 int new_upper = 0;
+int dead_ends = 0;
+int bad_index;
 
 for (int j=lower; j <= upper; j++){
     
     if (sorted[j] + char_pos == length){
-        sorted[lower] = sorted[j];
-        lower++;
+        tmp_array[0] = sorted[j];
+        dead_ends++;
+        bad_index = j;
         continue;
     }
     
    count_array[text[sorted[j] + char_pos]] = count_array[text[sorted[j] + char_pos]] + 1;
 }
 
-for (int i = 1; i < 256 ; i++){
+
+
+
+for (int i = 0; i < 256 ; i++){
+    count_array[i] = count_array[i] + count_array[i -1]; 
+}
+
+for (int i = 0; i < 256 ; i++){
     upper_array[i] = count_array[i];
 }
 
 
-for (int i = 1; i < 256 ; i++){
-    count_array[i] = count_array[i] + count_array[i -1]; 
-}
-
-
-
 for(int j = upper; j >=lower; j--){
-    tmp_array[count_array[text[sorted[j] + char_pos]] - 1] = sorted[j];
+    if(bad_index == j)
+        continue;
+    tmp_array[count_array[text[sorted[j] + char_pos]] - 1 + dead_ends] = sorted[j];
     count_array[text[sorted[j] + char_pos]] = count_array[text[sorted[j] + char_pos]] - 1;
     
 } 
@@ -56,12 +62,12 @@ for (int j = 0;  j < items; j++){
     i++;
 }
 
-int j = lower;
-while (j <= upper)
+int j = lower + dead_ends;
+while (j < upper)
 {
-    new_upper = upper_array[text[sorted[j] + char_pos]] ;
+    new_upper = upper_array[text[sorted[j] + char_pos]] - 1 + j;
     msd_radix_sort(text, sorted, j , new_upper , char_pos + 1, length);
-    j = j + new_upper;
+    j =  new_upper + 1;
  
 }
 
