@@ -36,6 +36,9 @@ for (int j=lower; j <= upper; j++){
    count_array[text[sorted[j] + char_pos]] = count_array[text[sorted[j] + char_pos]] + 1;
 }
 
+for (int i = 0; i < 256 ; i++){
+    upper_array[i] = count_array[i];
+}
 
 
 
@@ -43,9 +46,6 @@ for (int i = 0; i < 256 ; i++){
     count_array[i] = count_array[i] + count_array[i -1]; 
 }
 
-for (int i = 0; i < 256 ; i++){
-    upper_array[i] = count_array[i];
-}
 
 
 for(int j = upper; j >=lower; j--){
@@ -65,7 +65,7 @@ for (int j = 0;  j < items; j++){
 int j = lower + dead_ends;
 while (j < upper)
 {
-    new_upper = upper_array[text[sorted[j] + char_pos]] - 1 + j;
+    new_upper = upper_array[text[sorted[j] + char_pos]] + j -1;
     msd_radix_sort(text, sorted, j , new_upper , char_pos + 1, length);
     j =  new_upper + 1;
  
