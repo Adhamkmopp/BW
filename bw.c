@@ -40,13 +40,9 @@ for (int i = 0; i < 256 ; i++){
     upper_array[i] = count_array[i];
 }
 
-
-
 for (int i = 0; i < 256 ; i++){
     count_array[i] = count_array[i] + count_array[i -1]; 
 }
-
-
 
 for(int j = upper; j >=lower; j--){
     if(bad_index == j)
@@ -141,8 +137,11 @@ for(int k = suff_index;k >=0; k--){
 
 int main(int argc, char *argv[]) {
 
-if (argc !=2)
+if (argc !=2){
+    fprintf(stderr, "Input filename address only");
     exit(0);
+}
+    
 rio_t rio;
 int fd;
 struct stat txt_stats;
