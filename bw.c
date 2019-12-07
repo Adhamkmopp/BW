@@ -7,6 +7,16 @@
 
 #include "csapp.h"
 
+/* msd_radix_sort performs radix sort based on the most significant digit. 
+Its input (in order) is a pointer to the string, a pointer to an initial 
+array of suffix indexes, a lower and upper bound, the current character 
+position and the length of the string itself.
+
+This is a recursive function that continously sorts subarrays grouped by
+a common character at the current character position, before incrementing
+that position by 1 and sorting again on the latter. The terminating condition
+is when the lower and upper bounds are equal. Lastly, sorting is performed
+through sort count implemented within the function itself.*/
 
 void msd_radix_sort(char *text, int *sorted, int lower, int upper, int char_pos, int length)
 {
