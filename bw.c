@@ -10,13 +10,8 @@
 /* msd_radix_sort performs radix sort based on the most significant digit. 
 Its input (in order) is a pointer to the string, a pointer to an initial 
 array of suffix indexes, a lower and upper bound, the current character 
-position and the length of the string itself.
+position and the length of the string itself.*/
 
-This is a recursive function that continously sorts subarrays grouped by
-a common character at the current character position, before incrementing
-that position by 1 and sorting again on the latter. The terminating condition
-is when the lower and upper bounds are equal. Lastly, sorting is performed
-through sort count implemented within the function itself.*/
 
 void msd_radix_sort(char *text, int *sorted, int lower, int upper, int char_pos, int length)
 {
@@ -81,19 +76,13 @@ free(upper_array);
 }
 
 
-/* suffix_radix_sort performs radix sort on a set of suffixes, from least,
-to most signficiant digit, with the addition of one new suffix at a time. The 
-suffix_radix_sort  function takes a pointer to the text, an array to place sorted 
-suffix indices,  a void pointer to a space of 256 integer entries for keeping counts,
+/* The lsd_radix_sort function takes a pointer to the text, an array to place sorted 
+suffix indices, a void pointer to a space of 256 integer entries for keeping counts,
 the length of the text and a suff_index variable to keep a record of the current 
-round of sorting. At every round  of sorting, a new suffix is introduced and is 
-given the key value  of suff_index. Sorting is performed on a column of characters 
-of the old suffixes shifted by one position to the left, in addition to the right-most 
-character of a  newly introduced suffix (which is always the last character of the 
-text itself).
+round of sorting.
  */
 
-void suffix_radix_sort(char *text, int *sorted, void *counts, int length, int suff_index)
+void lsd_radix_sort(char *text, int *sorted, void *counts, int length, int suff_index)
 {
 
 int *count_array = counts;
@@ -110,18 +99,7 @@ for (int i =0; i <= suff_index; i++){
 
 /* curr_suff holds the correct position of the column character for the suffix 
 under consideration. Suffixes are not directly represented, but are calculated 
-from the length of the text and their key-value. For example, the second suffix 
-in BANANA (which is ANANA) is given the key-value of 2 during the second round 
-of sorting (from suff_index). During the third round, the correct character 
-column should be at the first 'N' from the right, which is exactly at the 
-character position given by the formula: 
-
-length - (suff_index - tmp_sort[k]) 
-
-or 6 - (3 - 2) = 5. 
-
-the formula applies to the the first suffix's (BANANA) character column as well, 
-which should be the 2nd 'A' from the right or: 6 - (3 - 1) = 4.*/
+from the length of the text and their key-value.*/
 
 for(int k = 0;k < suff_index; k++){
     curr_suff = length - (suff_index - tmp_sort[k]);   
@@ -180,7 +158,7 @@ memset is used to 'wipe out' the array faster than iterating over
 every element */
 for (int i = 0; i <  text_end + 1; i++){
     counts =  memset(counts, 0, sizeof(int) *256);
-    suffix_radix_sort(mybuff, sorted_buff, counts, text_end , i );
+    lsd_radix_sort(mybuff, sorted_buff, counts, text_end , i );
 }
 
 
