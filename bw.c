@@ -15,7 +15,7 @@ position and the length of the string itself.*/
 
 void msd_radix_sort(char *text, int *sorted, int lower, int upper, int char_pos, int length)
 {
-    
+
 int range = upper - lower;
 
 // recursion termination condition
@@ -168,7 +168,6 @@ int real_size = text_end +1;
 int x=0;
 
 printf("\nTransformed text (radix sort): ");
-
 for (int i = 0; i <  real_size; i++){
     x= (sorted_buff[i] - 1);
 
