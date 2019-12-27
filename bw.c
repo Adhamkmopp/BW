@@ -12,7 +12,6 @@ Its input (in order) is a pointer to the string, a pointer to an initial
 array of suffix indexes, a lower and upper bound, the current character 
 position and the length of the string itself.*/
 
-
 void msd_radix_sort(char *text, int *sorted, int lower, int upper, int char_pos, int length)
 {
 
@@ -33,8 +32,7 @@ int bad_index;
 
 /* if condition:suffix at last position set dead_end to 1, record suffix index j
  at bad_index and set first sort position to j */
-for (int j=lower; j <= upper; j++){
-    
+for (int j=lower; j <= upper; j++){ 
     if (sorted[j] + char_pos == length){
         tmp_array[0] = sorted[j];
         dead_end = 1;
@@ -49,7 +47,7 @@ for (int i = 0; i < 256 ; i++){
 }
 
 for (int i = 0; i < 256 ; i++){
-    count_array[i] = count_array[i] + count_array[i -1]; 
+    count_array[i] = count_array[i] + count_array[i -1];
 }
 
 // dead_end in tmp_array indexing to determine real sort position to prevent overwrite on first position
@@ -67,6 +65,10 @@ for (int j = 0;  j < items; j++){
 }
 
 int j = lower + dead_end;
+
+free(count_array);
+free((void*)(tmp_array));
+
 while (j < upper)
 {
     new_upper = upper_array[text[sorted[j] + char_pos]] + j -1;
@@ -74,7 +76,9 @@ while (j < upper)
     j =  new_upper + 1;
 }
 
+
 free(upper_array);
+
 }
 
 
@@ -139,12 +143,8 @@ int text_end = full_size - 2;
 
 char *mybuff = (void *) malloc(full_size);
 void *counts = (void *) malloc(sizeof(int)*256);
-
-int sorted_buff[text_end + 1];
-
-for(int i = 0; i <= text_end; i++){
-    sorted_buff[i] = 0;
-}
+int *sorted_buff = (void *) malloc(sizeof(int)* (text_end+1));
+memset(sorted_buff, 0, (text_end + 1) * sizeof(int));
 
 Rio_readinitb(&rio, fd);
 rio_readnb(&rio, mybuff, 8092);
@@ -192,6 +192,7 @@ for (int i = 0; i <  real_size; i++){
     printf("%c", mybuff[(x < 0) ? (x % real_size + real_size) : (x % real_size)]);
 }
 
-free(mybuff);
-free(counts);
+free((void*)mybuff);
+free((void*)counts);
+free((void*)sorted_buff);
 }
