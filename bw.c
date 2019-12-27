@@ -7,6 +7,59 @@
 
 #include "csapp.h"
 
+/* The lsd_radix_sort function takes a pointer to the text, an array to place sorted 
+suffix indices, a void pointer to a space of 256 integer entries for keeping counts,
+the length of the text and a suff_index variable to keep a record of the current 
+round of sorting.
+ */
+
+struct MSD_args{
+char *text; 
+int *sorted;
+int lower; 
+int upper;
+int char_pos;
+int length;
+};
+
+
+void lsd_radix_sort(char *text, int *sorted, void *counts, int length, int suff_index)
+{
+
+int *count_array = counts;
+int curr_suff;
+
+/* tmp_sort holds initial values of the previous sort order. It serves a double
+ as a temporary sorting  array to  avoid overwriting already sorted 
+values, as well as a placeholder for key-values of current suffixes */
+int tmp_sort[suff_index + 1]; 
+for (int i =0; i <= suff_index; i++){
+    tmp_sort[i] = sorted[i];
+}
+
+/* curr_suff holds the correct position of the column character for the suffix 
+under consideration. Suffixes are not directly represented, but are calculated 
+from the length of the text and their key-value.*/
+for(int k = 0;k < suff_index; k++){
+    curr_suff = length - (suff_index - tmp_sort[k]);   
+    count_array[text[curr_suff]] = count_array[text[curr_suff]] + 1;
+}
+
+count_array[text[length]] = count_array[text[length]] + 1;
+tmp_sort[suff_index] = suff_index; 
+
+
+for (int i = 1; i < 256; i++){
+    count_array[i] = count_array[i] + count_array[i -1]; 
+}
+
+for(int k = suff_index;k >=0; k--){
+    curr_suff = length - (suff_index - tmp_sort[k]);
+    sorted[count_array[text[curr_suff]] - 1] = tmp_sort[k];
+    count_array[text[curr_suff]] = count_array[text[curr_suff]] -1;  
+}
+}
+
 /* msd_radix_sort performs radix sort based on the most significant digit. 
 Its input (in order) is a pointer to the string, a pointer to an initial 
 array of suffix indexes, a lower and upper bound, the current character 
@@ -81,48 +134,100 @@ free(upper_array);
 
 }
 
+/* msd_radix_sort performs radix sort based on the most significant digit. 
+Its input (in order) is a pointer to the string, a pointer to an initial 
+array of suffix indexes, a lower and upper bound, the current character 
+position and the length of the string itself.*/
 
-/* The lsd_radix_sort function takes a pointer to the text, an array to place sorted 
-suffix indices, a void pointer to a space of 256 integer entries for keeping counts,
-the length of the text and a suff_index variable to keep a record of the current 
-round of sorting.
- */
-void lsd_radix_sort(char *text, int *sorted, void *counts, int length, int suff_index)
+void *thread_msd_radix_sort(void *vargs)
 {
 
-int *count_array = counts;
-int curr_suff;
+pthread_t my_id = pthread_self();
+pthread_detach(my_id);
 
-/* tmp_sort holds initial values of the previous sort order. It serves a double
- as a temporary sorting  array to  avoid overwriting already sorted 
-values, as well as a placeholder for key-values of current suffixes */
-int tmp_sort[suff_index + 1]; 
-for (int i =0; i <= suff_index; i++){
-    tmp_sort[i] = sorted[i];
+
+struct MSD_args *sort_args  =  (struct MSD_args*) vargs;
+int upper = (*sort_args).upper;
+int lower = (*sort_args).lower;
+int range = upper - lower;
+int out;
+
+// recursion termination condition
+if (range <=0)
+    pthread_exit(&out);
+
+int items = range + 1;
+int *count_array = (void *) calloc(256, sizeof(int));
+int *upper_array = (void *) calloc(256, sizeof(int));
+int *tmp_array = (void *) calloc(items, sizeof(int));
+int new_upper = 0;
+int dead_end = 0;
+int bad_index;
+int *sorted = (*sort_args).sorted;
+int char_pos = (*sort_args).char_pos;
+int length = (*sort_args).length;
+char *text = (*sort_args).text;
+
+free((void*)sort_args);
+
+/* if condition:suffix at last position set dead_end to 1, record suffix index j
+ at bad_index and set first sort position to j */
+for (int j=lower; j <= upper; j++){ 
+    if (sorted[j] + char_pos == length){
+        tmp_array[0] = sorted[j];
+        dead_end = 1;
+        bad_index = j;
+        continue;
+    }    
+   count_array[text[sorted[j] + char_pos]] = count_array[text[sorted[j] + char_pos]] + 1;
 }
 
-/* curr_suff holds the correct position of the column character for the suffix 
-under consideration. Suffixes are not directly represented, but are calculated 
-from the length of the text and their key-value.*/
-for(int k = 0;k < suff_index; k++){
-    curr_suff = length - (suff_index - tmp_sort[k]);   
-    count_array[text[curr_suff]] = count_array[text[curr_suff]] + 1;
+for (int i = 0; i < 256 ; i++){
+    upper_array[i] = count_array[i];
 }
 
-count_array[text[length]] = count_array[text[length]] + 1;
-tmp_sort[suff_index] = suff_index; 
-
-
-for (int i = 1; i < 256; i++){
-    count_array[i] = count_array[i] + count_array[i -1]; 
+for (int i = 0; i < 256 ; i++){
+    count_array[i] = count_array[i] + count_array[i -1];
 }
 
-for(int k = suff_index;k >=0; k--){
-    curr_suff = length - (suff_index - tmp_sort[k]);
-    sorted[count_array[text[curr_suff]] - 1] = tmp_sort[k];
-    count_array[text[curr_suff]] = count_array[text[curr_suff]] -1;  
+// dead_end in tmp_array indexing to determine real sort position to prevent overwrite on first position
+for(int j = upper; j >=lower; j--){
+    if(bad_index == j)
+        continue;
+    tmp_array[count_array[text[sorted[j] + char_pos]] - 1 + dead_end] = sorted[j];
+    count_array[text[sorted[j] + char_pos]] = count_array[text[sorted[j] + char_pos]] - 1;
+} 
+
+int i = lower;
+for (int j = 0;  j < items; j++){
+    sorted[i] = tmp_array[j];
+    i++;
 }
+
+int j = lower + dead_end;
+
+free(count_array);
+free((void*)(tmp_array));
+
+while (j < upper)
+{
+    struct MSD_args (*new_sort_args) = malloc (sizeof(struct MSD_args));
+    new_upper = upper_array[text[sorted[j] + char_pos]] + j -1;
+    (*new_sort_args).text= text;
+    (*new_sort_args).sorted= sorted;
+    (*new_sort_args).lower= j;
+    (*new_sort_args).upper= new_upper;
+    (*new_sort_args).char_pos= char_pos;
+    (*new_sort_args).length= length;
+    pthread_t tid;
+    Pthread_create(&tid, NULL, thread_msd_radix_sort, new_sort_args);
+    j =  new_upper + 1;
 }
+
+free(upper_array);
+
+}
+
 
 
 int main(int argc, char *argv[]) {
@@ -192,7 +297,38 @@ for (int i = 0; i <  real_size; i++){
     printf("%c", mybuff[(x < 0) ? (x % real_size + real_size) : (x % real_size)]);
 }
 
+counts =  memset(counts, 0, sizeof(int) *256);
+for(int i = 0; i <= text_end; i++){
+    sorted_buff[i] = i;
+}
+
+struct MSD_args (*new_sort_args) = malloc (sizeof(struct MSD_args));
+    (*new_sort_args).text= mybuff;
+    (*new_sort_args).sorted= sorted_buff;
+    (*new_sort_args).lower= 0;
+    (*new_sort_args).upper= text_end;
+    (*new_sort_args).char_pos= 0;
+    (*new_sort_args).length= (text_end + 1);
+
+pthread_t tid;
+
+Pthread_create(&tid, NULL, thread_msd_radix_sort,new_sort_args);
+
+printf("\nSuffix sort by index (Threaded MSD sort): ");
+for (int i = 0; i <  text_end + 1; i++){
+   printf("%d ", sorted_buff[i]);
+}
+
+printf("\nTransformed text (Threaded MSD sort): ");
+for (int i = 0; i <  real_size; i++){
+    x= (sorted_buff[i] - 1);
+    printf("%c", mybuff[(x < 0) ? (x % real_size + real_size) : (x % real_size)]);
+}
+
 free((void*)mybuff);
 free((void*)counts);
 free((void*)sorted_buff);
+
+
+
 }
