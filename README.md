@@ -14,10 +14,16 @@ This is an implementation of the most significant digit (MSD) string sort algori
 
 The code so far does not have an implementation of insertion sort in place, but it does produces the **correct** overall result. Unlike the canonical radix sort implemented here, MSD-radix sort does not require a unique terminating character. It works on any string and on any collection of arbitrary suffixes. 
 
-## Parallelism//Not Good
+## Threaded MSD-Radix Sort
+
+A threaded implementation of MSD-radix sort first calls a main thread function to sort the suffixes according to the first character position. Afterwhich, peer threads are called in groups of 6 (plus a remainder) to act on seperate bins with a function block inbetween until all peer threads have been reaped/joined. The peer threads themselves are similar to the recursive MSD-radix sort algorithm; they simply call the recursive MSD-radix sort function and do not exit until all recursive work is finished. The idea behind this implementation was (1) to allow multiple concurrent function calls to the MSD sort function instead of waiting until the recursive function bottoms out and (2) to have direct control over the number of concurrent threads.
+
+Unfortunately, quick analysis shows that all three methods take up roughly the same time. This is likely due to there being strict read/write dependencies spread allthroughout.
+
+## Parallelism Issue
 
 In theory, the recursion part in MSD-radix sort can be made explicitly concurrent as sorting subarrays (within a current character postion but **not** subsequent ones) is data independent. However, there are two issues that become immediately apprent for a direct impementation of threading on top of radix sort.
 
-1.	Space: counting sort relies on a couple of auxiliary arrays for keeping count, and for generating new upper indices for subsequent subarrays in the recursion. For ASCII characters, each is 256 integers long, for unicode it is in the upper range of tens of thousands. An alternative would to be to do away with count sort completely and replace it with a stable, in-place sorting algorithm, or to limit the number of concurrent threads while keeping recursion in mind, somehowever.
+1.	Space: count sort relies on a couple of auxiliary arrays for keeping count, and for generating new upper indices for subsequent subarrays in the recursion. For ASCII characters, each is 256 integers long, for unicode it is in the upper range of tens of thousands. An alternative would to be to do away with count sort completely and replace it with a stable, in-place sorting algorithm, or to limit the number of concurrent threads while keeping recursion in mind, somehowever.
 
-2.	Race conditions: a partial parallel version of count is sort is possible, specifically the counting phase. This naturally exacerbates the issue with space, as multiple auxiliary arrays would have to be maintained, unless a static counting array is shared among all theads. This in turn leads to a race condition between reading a particular count from memory, incrementing that count by one and writing it back to memory. A mutex could eliminate that issue, but it further adds to the overall running time as they are (to my knowledge)expensive. It might be worth it if the cost is significantly amortized however.
+2.	Race conditions: a partial parallel version of count is sort is possible, specifically the counting phase. This naturally exacerbates the issue with space, as multiple auxiliary arrays would have to be maintained, unless a static counting array is shared among all theads. This in turn leads to a race condition between reading a particular count from memory, incrementing that count by one and writing it back to memory. A mutex could eliminate that issue, but it further adds to the overall running time as they are (to my knowledge) expensive. It might be worth it if the cost is significantly amortized however.
